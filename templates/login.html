@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block auth_content %}
+<div class="login-screen">
+  <div class="login-left">
+    <div class="login-deco">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+      <div class="deco-circle c3"></div>
+    </div>
+    <div class="login-left-content">
+      <div class="login-brand">
+        <i class="bi bi-mortarboard-fill"></i> EduTrack
+      </div>
+      <h1 class="login-headline">Manage students<br /><em>effortlessly.</em></h1>
+      <p class="login-tagline">A modern student management portal for educators who value simplicity and performance.</p>
+      <div class="login-stats">
+        <div class="ls-item"><span class="ls-num">∞</span><span class="ls-label">Students</span></div>
+        <div class="ls-item"><span class="ls-num">4</span><span class="ls-label">Fields</span></div>
+        <div class="ls-item"><span class="ls-num">1</span><span class="ls-label">Admin</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="lc-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to your admin account</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for cat, msg in messages %}
+            <div class="alert-pill alert-{{ cat }} mb-3">
+              <i class="bi bi-exclamation-circle-fill"></i> {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('login') }}" novalidate>
+        <div class="lc-field">
+          <label>Username</label>
+          <div class="lc-input-wrap">
+            <i class="bi bi-person"></i>
+            <input type="text" name="username" placeholder="admin" required autofocus />
+          </div>
+        </div>
+        <div class="lc-field">
+          <label>Password</label>
+          <div class="lc-input-wrap">
+            <i class="bi bi-lock"></i>
+            <input type="password" name="password" id="pwdInput" placeholder="••••••••" required />
+            <button type="button" class="pwd-toggle" onclick="togglePwd()">
+              <i class="bi bi-eye" id="pwdIcon"></i>
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn-login">Sign In <i class="bi bi-arrow-right"></i></button>
+      </form>
+
+      <p class="lc-hint"><i class="bi bi-info-circle"></i> Demo: <code>admin</code> / <code>admin123</code></p>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePwd() {
+  const i = document.getElementById('pwdInput');
+  const ic = document.getElementById('pwdIcon');
+  if (i.type === 'password') { i.type = 'text'; ic.className = 'bi bi-eye-slash'; }
+  else { i.type = 'password'; ic.className = 'bi bi-eye'; }
+}
+</script>
+{% endblock %}

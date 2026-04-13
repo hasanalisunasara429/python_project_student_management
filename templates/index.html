@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+  <!-- Stat Cards -->
+  <div class="stat-grid">
+    <div class="stat-card sc-blue">
+      <div class="sc-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="sc-body">
+        <div class="sc-num" data-target="{{ total }}">0</div>
+        <div class="sc-label">Total Students</div>
+      </div>
+      <div class="sc-bg-icon"><i class="bi bi-people-fill"></i></div>
+    </div>
+    <div class="stat-card sc-green">
+      <div class="sc-icon"><i class="bi bi-book-fill"></i></div>
+      <div class="sc-body">
+        <div class="sc-num" data-target="{{ courses }}">0</div>
+        <div class="sc-label">Active Courses</div>
+      </div>
+      <div class="sc-bg-icon"><i class="bi bi-book-fill"></i></div>
+    </div>
+    <div class="stat-card sc-orange">
+      <div class="sc-icon"><i class="bi bi-person-check-fill"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">1</div>
+        <div class="sc-label">Admin Users</div>
+      </div>
+      <div class="sc-bg-icon"><i class="bi bi-person-check-fill"></i></div>
+    </div>
+    <div class="stat-card sc-purple">
+      <div class="sc-icon"><i class="bi bi-database-fill"></i></div>
+      <div class="sc-body">
+        <div class="sc-num">SQLite</div>
+        <div class="sc-label">Database</div>
+      </div>
+      <div class="sc-bg-icon"><i class="bi bi-database-fill"></i></div>
+    </div>
+  </div>
+
+  <div class="dash-grid">
+    <!-- Recent Students -->
+    <div class="dash-card">
+      <div class="dc-header">
+        <h3><i class="bi bi-clock-history"></i> Recent Enrollments</h3>
+        <a href="{{ url_for('students') }}" class="dc-link">View all <i class="bi bi-arrow-right"></i></a>
+      </div>
+      {% if recent %}
+      <table class="mini-table">
+        <thead>
+          <tr><th>#</th><th>Name</th><th>Course</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for s in recent %}
+          <tr>
+            <td><span class="row-id">{{ s.id }}</span></td>
+            <td>
+              <div class="mini-student">
+                <div class="mini-avatar">{{ s.name[0]|upper }}</div>
+                <div>
+                  <div class="mini-name">{{ s.name }}</div>
+                  <div class="mini-email">{{ s.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td><span class="course-badge">{{ s.course }}</span></td>
+            <td>
+              <a href="{{ url_for('edit_student', student_id=s.id) }}" class="act-btn"><i class="bi bi-pencil"></i></a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <i class="bi bi-person-x"></i>
+        <p>No students yet. <a href="{{ url_for('add_student') }}">Add one!</a></p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Course Distribution Chart -->
+    <div class="dash-card">
+      <div class="dc-header">
+        <h3><i class="bi bi-pie-chart-fill"></i> Course Distribution</h3>
+      </div>
+      <canvas id="courseChart" height="260"></canvas>
+      <div id="chartEmpty" class="empty-state" style="display:none">
+        <i class="bi bi-bar-chart"></i>
+        <p>No data yet</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <a href="{{ url_for('add_student') }}" class="qa-card qa-add">
+      <i class="bi bi-person-plus-fill"></i>
+      <span>Add Student</span>
+    </a>
+    <a href="{{ url_for('students') }}" class="qa-card qa-view">
+      <i class="bi bi-table"></i>
+      <span>View All</span>
+    </a>
+    <a href="{{ url_for('students') }}?q=" class="qa-card qa-search">
+      <i class="bi bi-search"></i>
+      <span>Search</span>
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script>
+// Counter animation
+document.querySelectorAll('.sc-num[data-target]').forEach(el => {
+  const target = +el.dataset.target;
+  if (!target) { el.textContent = 0; return; }
+  let current = 0;
+  const step = Math.max(1, Math.ceil(target / 40));
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current;
+    if (current >= target) clearInterval(timer);
+  }, 30);
+});
+
+// Chart
+fetch('/api/course-stats')
+  .then(r => r.json())
+  .then(data => {
+    if (!data.length) { document.getElementById('chartEmpty').style.display='flex'; return; }
+    const colors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#84cc16'];
+    new Chart(document.getElementById('courseChart'), {
+      type: 'doughnut',
+      data: {
+        labels: data.map(d => d.course),
+        datasets: [{ data: data.map(d => d.count), backgroundColor: colors, borderWidth: 3, borderColor: 'var(--card-bg)', hoverOffset: 8 }]
+      },
+      options: {
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: 'var(--text)', font: { family: 'DM Sans', size: 12 }, padding: 14 } }
+        }
+      }
+    });
+  });
+</script>
+{% endblock %}
